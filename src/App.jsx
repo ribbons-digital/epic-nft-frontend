@@ -88,15 +88,11 @@ const App = () => {
        */
       console.log("Connected", accounts[0]);
 
-      if (isOnCorrectNetwork) {
-        setCurrentAccount(accounts[0]);
+      setCurrentAccount(accounts[0]);
 
-        // Setup listener! This is for the case where a user comes to our site
-        // and connected their wallet for the first time.
-        setupEventListener();
-      } else {
-        displayNetworkErrorToast();
-      }
+      // Setup listener! This is for the case where a user comes to our site
+      // and connected their wallet for the first time.
+      setupEventListener();
     } catch (error) {
       console.log(error);
     }
@@ -119,7 +115,7 @@ const App = () => {
   };
 
   const displayNetworkErrorToast = () =>
-    toast("Please connect to the correct network.");
+    !isOnCorrectNetwork && toast("Please connect to the correct network.");
 
   const isOnCorrectNetwork =
     window.ethereum && window.ethereum.networkVersion === "4";
@@ -172,6 +168,10 @@ const App = () => {
   React.useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
+
+  React.useEffect(() => {
+    displayNetworkErrorToast();
+  });
 
   // Render Methods
   const renderNotConnectedContainer = () => (
