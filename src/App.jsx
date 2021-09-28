@@ -199,7 +199,7 @@ const App = () => {
       onClick={askContractToMintNft}
       className="cta-button connect-wallet-button"
     >
-      Mint NFT
+      {isMinting ? "Minting..." : "Mint NFT"}
     </button>
   );
 
@@ -209,6 +209,9 @@ const App = () => {
         <div className="header-container">
           <p className="header gradient-text">On-Chain Random Words</p>
           <p className="sub-text">🎁 Get your EPIC NFT today! 🎁</p>
+          {isOnCorrectNetwork && (
+            <p className="sub-text-sm">You are on the Rinkeby Network</p>
+          )}
           {currentAccount === ""
             ? renderNotConnectedContainer()
             : renderMintUI()}
