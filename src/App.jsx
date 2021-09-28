@@ -4,10 +4,11 @@ import React from "react";
 import { ethers } from "ethers";
 import myEpicNft from "./utils/MyEpicNFT.json";
 import { ToastContainer, toast } from "react-toastify";
+import Blocks from "./assets/Blocks.svg";
 import "react-toastify/dist/ReactToastify.css";
 
 // Constants
-const TWITTER_HANDLE = "_buildspace";
+const TWITTER_HANDLE = "just_shiang";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const OPENSEA_LINK = "https://testnets.opensea.io/assets";
 const TOTAL_MINT_COUNT = 50;
@@ -16,6 +17,7 @@ const CONTRACT_ADDRESS = "0x8A8Bb906Cf69d2CFD015311a916e5721b4bC1848";
 const App = () => {
   const [currentAccount, setCurrentAccount] = React.useState("");
   const [numberMinted, setNumberMinted] = React.useState(0);
+  const [isMinting, setIsMinting] = React.useState(false);
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -122,6 +124,7 @@ const App = () => {
       const { ethereum } = window;
 
       if (ethereum) {
+        setIsMinting(true);
         const provider = new ethers.providers.Web3Provider(ethereum);
         const signer = provider.getSigner();
         const connectedWallet = new ethers.Contract(
@@ -136,6 +139,7 @@ const App = () => {
         console.log("Mining...please wait..");
         await nftTxn.wait();
 
+        setIsMinting(false);
         console.log(
           `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
         );
@@ -146,6 +150,7 @@ const App = () => {
       }
     } catch (error) {
       console.log(error);
+      setIsMinting(false);
     }
   };
 
@@ -169,9 +174,7 @@ const App = () => {
         // This will essentially "capture" our event when our contract throws it.
         // If you're familiar with webhooks, it's very similar to that!
         connectedContract.on("NewEpicNFTMinted", (_, tokenId) => {
-          alert(
-            `Hey there! We've minted your NFT and sent it to your wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: ${OPENSEA_LINK}/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
-          );
+          displayMintResultToast(tokenId);
         });
 
         console.log("Setup event listener!");
@@ -197,6 +200,14 @@ const App = () => {
     </button>
   );
 
+  const displayMintResultToast = (tokenId) => {
+    return toast(
+      <MintResultToast
+        link={`${OPENSEA_LINK}/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`}
+      />
+    );
+  };
+
   /*
    * We want the "Connect to Wallet" button to dissapear if they've already connected their wallet!
    */
@@ -213,17 +224,18 @@ const App = () => {
     <div className="App">
       <div className="container">
         <div className="header-container">
-          <p className="header gradient-text">My NFT Collection</p>
-          <p className="sub-text">
-            Each unique. Each beautiful. Discover your NFT today.
-          </p>
+          <p className="header gradient-text">On-Chain Random Words</p>
+          <p className="sub-text">🎁 Get your EPIC NFT today! 🎁</p>
           {currentAccount === ""
             ? renderNotConnectedContainer()
             : renderMintUI()}
+          <div style={{ color: "white", marginTop: "8px" }}>
+            Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
+          </div>
         </div>
-        <div style={{ color: "white" }}>
-          Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
-        </div>
+        {isMinting && (
+          <img style={{ width: "30%" }} src={Blocks} alt="loading blocks" />
+        )}
         <div className="footer-container">
           <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
           <a
@@ -231,12 +243,35 @@ const App = () => {
             href={TWITTER_LINK}
             target="_blank"
             rel="noreferrer"
-          >{`built on @${TWITTER_HANDLE}`}</a>
+          >{`built with ❤ by @${TWITTER_HANDLE}`}</a>
         </div>
       </div>
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };
+
+function MintResultToast({ link }) {
+  return (
+    <div>
+      <p>
+        Hey there! We've minted your NFT and sent it to your wallet. It may be
+        blank right now. It can take a max of 10 min to show up on OpenSea.
+      </p>
+      <a href={link} target="_blank" rel="noreferrer">
+        View your NFT on OpenSea!
+      </a>
+    </div>
+  );
+}
 
 export default App;
