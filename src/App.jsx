@@ -77,13 +77,13 @@ const App = () => {
         );
 
         console.log("going to pop wallet now to pay gas...");
-        let nftTxn = await connectedWallet.makeAnEpicNft();
+        let nftTxn = await connectedWallet.makeAnEpicNFT();
 
         console.log("Mining...please wait..");
         await nftTxn.wait();
 
         console.log(
-          `Mined, see transaction: https://rineby.etherscan.io/tx/${nftTxn.hash}`
+          `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
         );
       } else {
         console.log("Ethereum object doesn't exist!");
