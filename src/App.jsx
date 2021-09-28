@@ -140,7 +140,7 @@ const App = () => {
           `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
         );
 
-        getNumberOfNFTMinted();
+        getTotalNFTsMintedSoFar();
       } else {
         console.log("Ethereum object doesn't exist!");
       }
