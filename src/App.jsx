@@ -14,6 +14,24 @@ const OPENSEA_LINK = "https://testnets.opensea.io/assets";
 const TOTAL_MINT_COUNT = 50;
 const CONTRACT_ADDRESS = "0x8A8Bb906Cf69d2CFD015311a916e5721b4bC1848";
 
+const useContract = () => {
+  const { ethereum } = window;
+
+  if (ethereum) {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract(
+      CONTRACT_ADDRESS,
+      myEpicNft.abi,
+      signer
+    );
+
+    return contract;
+  }
+
+  return null;
+};
+
 const App = () => {
   const [currentAccount, setCurrentAccount] = React.useState("");
   const [numberMinted, setNumberMinted] = React.useState(0);
@@ -37,17 +55,13 @@ const App = () => {
       const account = accounts[0];
       console.log("Found an authorized account:", account);
 
-      if (isOnCorrectNetwork) {
-        setCurrentAccount(account);
+      setCurrentAccount(account);
 
-        getTotalNFTsMintedSoFar();
+      getTotalNFTsMintedSoFar();
 
-        // Setup listener! This is for the case where a user comes to our site
-        // and ALREADY had their wallet connected + authorized.
-        setupEventListener();
-      } else {
-        displayNetworkErrorToast();
-      }
+      // Setup listener! This is for the case where a user comes to our site
+      // and ALREADY had their wallet connected + authorized.
+      setupEventListener();
     } else {
       console.log("No authorized account found");
     }
@@ -89,27 +103,18 @@ const App = () => {
   };
 
   const getTotalNFTsMintedSoFar = async () => {
-    try {
-      const { ethereum } = window;
+    const contract = useContract();
 
-      if (ethereum) {
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const connectedWallet = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          myEpicNft.abi,
-          signer
-        );
-
-        const numMinted = await connectedWallet.getNumberOfNFTMinted();
+    if (contract) {
+      try {
+        const numMinted = await contract.getNumberOfNFTMinted();
 
         setNumberMinted(numMinted.toNumber());
-        // setNumberMinted(await connectedWallet.getNumberOfNFTMinted());
-      } else {
-        console.log("Ethereum object doesn't exist!");
+      } catch (error) {
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
+    } else {
+      console.log("Ethereum object doesn't exist!");
     }
   };
 
@@ -120,21 +125,13 @@ const App = () => {
     window.ethereum && window.ethereum.networkVersion === "4";
 
   const askContractToMintNft = async () => {
-    try {
-      const { ethereum } = window;
+    const contract = useContract();
 
-      if (ethereum) {
-        setIsMinting(true);
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const connectedWallet = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          myEpicNft.abi,
-          signer
-        );
-
+    if (contract) {
+      setIsMinting(true);
+      try {
         console.log("going to pop wallet now to pay gas...");
-        let nftTxn = await connectedWallet.makeAnEpicNFT();
+        let nftTxn = await contract.makeAnEpicNFT();
 
         console.log("Mining...please wait..");
         await nftTxn.wait();
@@ -145,44 +142,30 @@ const App = () => {
         );
 
         getTotalNFTsMintedSoFar();
-      } else {
-        console.log("Ethereum object doesn't exist!");
+      } catch (error) {
+        setIsMinting(false);
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
-      setIsMinting(false);
+    } else {
+      console.log("Ethereum object doesn't exist!");
     }
   };
 
   // Setup our listener.
   const setupEventListener = async () => {
-    // Most of this looks the same as our function askContractToMintNft
-    try {
-      const { ethereum } = window;
+    const contract = useContract();
 
-      if (ethereum) {
-        // Same stuff again
-        const provider = new ethers.providers.Web3Provider(ethereum);
-        const signer = provider.getSigner();
-        const connectedContract = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          myEpicNft.abi,
-          signer
-        );
+    if (contract) {
+      // THIS IS THE MAGIC SAUCE.
+      // This will essentially "capture" our event when our contract throws it.
+      // If you're familiar with webhooks, it's very similar to that!
+      contract.on("NewEpicNFTMinted", (_, tokenId) => {
+        displayMintResultToast(tokenId);
+      });
 
-        // THIS IS THE MAGIC SAUCE.
-        // This will essentially "capture" our event when our contract throws it.
-        // If you're familiar with webhooks, it's very similar to that!
-        connectedContract.on("NewEpicNFTMinted", (_, tokenId) => {
-          displayMintResultToast(tokenId);
-        });
-
-        console.log("Setup event listener!");
-      } else {
-        console.log("Ethereum object doesn't exist!");
-      }
-    } catch (error) {
-      console.log(error);
+      console.log("Setup event listener!");
+    } else {
+      console.log("Ethereum object doesn't exist!");
     }
   };
 
