@@ -235,9 +235,20 @@ const App = () => {
           {isOnCorrectNetwork && (
             <p className="sub-text-sm">You are on the Rinkeby Network</p>
           )}
-          {currentAccount === ""
-            ? renderNotConnectedContainer()
-            : renderMintUI()}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            {currentAccount === ""
+              ? renderNotConnectedContainer()
+              : renderMintUI()}
+            {isMinting && (
+              <img style={{ width: "20%" }} src={Blocks} alt="loading blocks" />
+            )}
+          </div>
           <div style={{ color: "white", marginTop: "8px" }}>
             Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
           </div>
@@ -254,9 +265,6 @@ const App = () => {
             ></div>
           ))}
         </div>
-        {isMinting && (
-          <img style={{ width: "30%" }} src={Blocks} alt="loading blocks" />
-        )}
         <div className="footer-container">
           <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
           <a

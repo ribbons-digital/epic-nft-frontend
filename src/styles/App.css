@@ -78,6 +78,7 @@ button {
 
 .my-collections {
   margin-top: 32px;
+  margin-bottom: 32px;
   font-weight: 700;
   text-decoration: underline;
 }
@@ -88,6 +89,7 @@ button {
   align-items: center;
   justify-content: space-evenly;
   flex-wrap: wrap;
+  margin-bottom: 32px;
 }
 
 .gradient-text {
