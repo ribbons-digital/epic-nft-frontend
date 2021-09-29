@@ -114,11 +114,11 @@ const App = () => {
   };
 
   const getWalletInfo = async (ethereum) => {
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    // Get the balance of an account (by address or ENS name, if supported by network)
-    const balance = await provider.getBalance("rinkeby.eth");
+    // const provider = new ethers.providers.Web3Provider(ethereum);
+    // // Get the balance of an account (by address or ENS name, if supported by network)
+    // const balance = await provider.getBalance("rinkeby.eth");
     // { BigNumber: "2337132817842795605" }
-
+    console.log(web3.eth.getBalance(selectedAddress));
     // Often you need to format the output to something more user-friendly,
     // such as in ether (instead of wei)
     setWalletInfo({
