@@ -6,7 +6,7 @@ import myEpicNft from "./utils/MyEpicNFT.json";
 import { ToastContainer, toast } from "react-toastify";
 import Blocks from "./assets/Blocks.svg";
 import "react-toastify/dist/ReactToastify.css";
-
+import Web3 from "web3";
 // Constants
 const TWITTER_HANDLE = "just_shiang";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
@@ -114,13 +114,9 @@ const App = () => {
   };
 
   const getWalletInfo = async (ethereum) => {
-    // const provider = new ethers.providers.Web3Provider(ethereum);
-    // // Get the balance of an account (by address or ENS name, if supported by network)
-    // const balance = await provider.getBalance("rinkeby.eth");
-    // { BigNumber: "2337132817842795605" }
-    console.log(web3.eth.getBalance(selectedAddress));
-    // Often you need to format the output to something more user-friendly,
-    // such as in ether (instead of wei)
+    const web3 = new Web3(Web3.givenProvider);
+    const balance = await web3.eth.getBalance(ethereum.selectedAddress);
+
     setWalletInfo({
       address: ethereum.selectedAddress,
       balance: Number(ethers.utils.formatEther(balance)).toFixed(2),
