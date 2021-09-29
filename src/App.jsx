@@ -10,6 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Constants
 const TWITTER_HANDLE = "just_shiang";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
+const BUILDSPACE_TWIITER = "https://twitter.com/@_buildspace";
 const OPENSEA_LINK = "https://testnets.opensea.io/assets";
 const TOTAL_MINT_COUNT = 50;
 const CONTRACT_ADDRESS = "0xB646598B2DCbddB32Ad6726528201D6EB0b4B1c2";
@@ -37,6 +38,10 @@ const App = () => {
   const [numberMinted, setNumberMinted] = React.useState(0);
   const [isMinting, setIsMinting] = React.useState(false);
   const [myCollections, setMyCollections] = React.useState([]);
+  const [walletInfo, setWalletInfo] = React.useState({
+    address: "",
+    balance: "",
+  });
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -59,6 +64,7 @@ const App = () => {
       setCurrentAccount(account);
 
       getTotalNFTsMintedSoFar();
+      getWalletInfo(ethereum);
 
       // fetchMyCollections();
 
@@ -79,6 +85,11 @@ const App = () => {
         return;
       }
 
+      if (!ethereum.isMetaMask) {
+        alert("Please use MetaMask Wallet");
+        return;
+      }
+
       /*
        * Fancy method to request access to account.
        */
@@ -92,6 +103,7 @@ const App = () => {
       console.log("Connected", accounts[0]);
 
       setCurrentAccount(accounts[0]);
+      getWalletInfo(ethereum);
 
       // Setup listener! This is for the case where a user comes to our site
       // and connected their wallet for the first time.
@@ -99,6 +111,20 @@ const App = () => {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const getWalletInfo = async (ethereum) => {
+    const provider = new ethers.providers.Web3Provider(ethereum);
+    // Get the balance of an account (by address or ENS name, if supported by network)
+    const balance = await provider.getBalance("rinkeby.eth");
+    // { BigNumber: "2337132817842795605" }
+
+    // Often you need to format the output to something more user-friendly,
+    // such as in ether (instead of wei)
+    setWalletInfo({
+      address: ethereum.selectedAddress,
+      balance: Number(ethers.utils.formatEther(balance)).toFixed(2),
+    });
   };
 
   const fetchMyCollections = async () => {
@@ -227,21 +253,43 @@ const App = () => {
   );
 
   return (
-    <div className="App">
-      <div className="container">
-        <div className="header-container">
-          <p className="header gradient-text">On-Chain Random Words</p>
-          <p className="sub-text">🎁 Get your EPIC NFT today! 🎁</p>
-          {isOnCorrectNetwork && (
-            <p className="sub-text-sm">You are on the Rinkeby Network</p>
-          )}
+    <div className="bg-gray-900 h-full">
+      <div className="w-full max-h-14 flex items-center justify-end">
+        {walletInfo.address !== "" && (
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
+              position: "relative",
+              width: "130px",
+            }}
+            className="text-white font-semibold p-4 bg-indigo-700 flex items-center mt-2"
+          >
+            <div className="whitespace-nowrap overflow-ellipsis overflow-hidden">
+              {walletInfo.address}
+            </div>
+            <div className="text-white">{walletInfo.address.slice(-3)}</div>
+          </div>
+        )}
+        {walletInfo.balance !== "" && (
+          <div
+            style={{
+              position: "relative",
+              width: "130px",
             }}
           >
+            <div className="text-white font-semibold p-4 bg-green-400 mt-2 mr-2 text-center">
+              {walletInfo.balance} ETH
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col items-center justify-around h-full">
+        <div className="flex flex-col items-center header-container">
+          <p className=" my-2 header gradient-text">On-Chain Random Words</p>
+          <p className="sub-text mb-2">🎁 Get your EPIC NFT today! 🎁</p>
+          {isOnCorrectNetwork && (
+            <p className="sub-text-sm mb-2">You are on the Rinkeby Network</p>
+          )}
+          <div className="flex flex-col items-center">
             {currentAccount === ""
               ? renderNotConnectedContainer()
               : renderMintUI()}
@@ -249,24 +297,36 @@ const App = () => {
               <img style={{ width: "20%" }} src={Blocks} alt="loading blocks" />
             )}
           </div>
-          <div style={{ color: "white", marginTop: "8px" }}>
+          <div className="text-white my-2">
             Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
           </div>
         </div>
 
-        <div className="container sub-text my-collections">My Collections</div>
-        <div className="collections">
-          {myCollections.map((item, i) => (
-            <div
-              contentEditable="true"
-              style={{ width: "20%" }}
-              key={i}
-              dangerouslySetInnerHTML={{ __html: atob(item) }}
-            ></div>
-          ))}
+        <div className="w-full flex flex-col items-center">
+          <div className="text-white font-semibold my-3 text-3xl underline">
+            My Collections
+          </div>
+          <div className="w-full grid grid-flow-row grid-cols-4 gap-4 my-4 px-4">
+            {myCollections.map((item, i) => (
+              <div
+                contentEditable="true"
+                key={i}
+                dangerouslySetInnerHTML={{ __html: atob(item) }}
+              ></div>
+            ))}
+          </div>
         </div>
         <div className="footer-container">
           <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
+          <a
+            className="footer-text"
+            href={BUILDSPACE_TWIITER}
+            target="_blank"
+            rel="noreferrer"
+          >
+            A @_buildspace Project
+          </a>
+          <div style={{ marginLeft: "8px", marginRight: "8px" }}>🦄</div>
           <a
             className="footer-text"
             href={TWITTER_LINK}
