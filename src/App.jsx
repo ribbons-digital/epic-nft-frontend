@@ -12,7 +12,7 @@ const TWITTER_HANDLE = "just_shiang";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const OPENSEA_LINK = "https://testnets.opensea.io/assets";
 const TOTAL_MINT_COUNT = 50;
-const CONTRACT_ADDRESS = "0x8A8Bb906Cf69d2CFD015311a916e5721b4bC1848";
+const CONTRACT_ADDRESS = "0xB646598B2DCbddB32Ad6726528201D6EB0b4B1c2";
 
 const useContract = () => {
   const { ethereum } = window;
@@ -36,6 +36,7 @@ const App = () => {
   const [currentAccount, setCurrentAccount] = React.useState("");
   const [numberMinted, setNumberMinted] = React.useState(0);
   const [isMinting, setIsMinting] = React.useState(false);
+  const [myCollections, setMyCollections] = React.useState([]);
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -59,9 +60,11 @@ const App = () => {
 
       getTotalNFTsMintedSoFar();
 
+      // fetchMyCollections();
+
       // Setup listener! This is for the case where a user comes to our site
       // and ALREADY had their wallet connected + authorized.
-      setupEventListener();
+      // setupEventListener();
     } else {
       console.log("No authorized account found");
     }
@@ -92,9 +95,25 @@ const App = () => {
 
       // Setup listener! This is for the case where a user comes to our site
       // and connected their wallet for the first time.
-      setupEventListener();
+      // setupEventListener();
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const fetchMyCollections = async () => {
+    const contract = useContract();
+
+    if (contract) {
+      try {
+        const collections = await contract.getMyCollections();
+
+        setMyCollections(collections);
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      console.log("Ethereum object doesn't exist!");
     }
   };
 
@@ -115,7 +134,7 @@ const App = () => {
   };
 
   const displayNetworkErrorToast = () =>
-    !isOnCorrectNetwork && toast("Please connect to the correct network.");
+    toast("Please connect to the correct network.");
 
   const isOnCorrectNetwork =
     window.ethereum && window.ethereum.networkVersion === "4";
@@ -138,6 +157,8 @@ const App = () => {
         );
 
         getTotalNFTsMintedSoFar();
+
+        setupEventListener();
       } catch (error) {
         setIsMinting(false);
         console.log(error);
@@ -155,8 +176,9 @@ const App = () => {
       // THIS IS THE MAGIC SAUCE.
       // This will essentially "capture" our event when our contract throws it.
       // If you're familiar with webhooks, it's very similar to that!
-      contract.on("NewEpicNFTMinted", (_, tokenId) => {
+      contract.on("NewEpicNFTMinted", (_, tokenId, collections) => {
         displayMintResultToast(tokenId);
+        setMyCollections(collections);
       });
 
       console.log("Setup event listener!");
@@ -167,11 +189,12 @@ const App = () => {
 
   React.useEffect(() => {
     checkIfWalletIsConnected();
+    if (!isOnCorrectNetwork) {
+      displayNetworkErrorToast();
+    } else {
+      fetchMyCollections();
+    }
   }, []);
-
-  React.useEffect(() => {
-    displayNetworkErrorToast();
-  });
 
   // Render Methods
   const renderNotConnectedContainer = () => (
@@ -218,6 +241,18 @@ const App = () => {
           <div style={{ color: "white", marginTop: "8px" }}>
             Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
           </div>
+        </div>
+
+        <div className="container sub-text my-collections">My Collections</div>
+        <div className="collections">
+          {myCollections.map((item, i) => (
+            <div
+              contentEditable="true"
+              style={{ width: "20%" }}
+              key={i}
+              dangerouslySetInnerHTML={{ __html: atob(item) }}
+            ></div>
+          ))}
         </div>
         {isMinting && (
           <img style={{ width: "30%" }} src={Blocks} alt="loading blocks" />

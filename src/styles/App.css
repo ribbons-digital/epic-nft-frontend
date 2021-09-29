@@ -76,6 +76,20 @@ button {
   color: white;
 }
 
+.my-collections {
+  margin-top: 32px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.collections {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
 .gradient-text {
   background: -webkit-linear-gradient(left, #60c657 30%, #35aee2 60%);
   background-clip: text;
