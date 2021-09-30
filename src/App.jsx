@@ -293,7 +293,7 @@ const App = () => {
       )}
       <button
         onClick={askContractToMintNft}
-        className="cta-button connect-wallet-button"
+        className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-4 py-2 rounded-lg"
       >
         {isMinting ? "Minting..." : "Mint NFT"}
       </button>
@@ -305,7 +305,7 @@ const App = () => {
 
   return (
     <div className="h-screen">
-      <div className="md:h-1/2 h-1/3">
+      <div className="h-1/2">
         <div className="bg-gray-900 flex flex-col items-center h-full">
           <div className="w-full flex items-center justify-end">
             <div className="flex flex-col items-center">
@@ -370,7 +370,7 @@ const App = () => {
           </div>
         </div>
       </div>
-      <div className="md:h-1/2 h-2/3 flex flex-col justify-between pt-16 md:pt-0">
+      <div className="h-1/2 flex flex-col justify-between pt-16 md:pt-0">
         <div className="w-full flex flex-col items-center">
           <div className="text-white font-semibold my-3 md:text-3xl text-lg underline">
             My Collections
