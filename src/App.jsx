@@ -305,62 +305,77 @@ const App = () => {
 
   return (
     <div className="h-screen">
-      <div className="h-1/3">
+      <div className="md:h-1/2 h-1/3">
         <div className="bg-gray-900 flex flex-col items-center h-full">
           <div className="w-full flex items-center justify-end">
-            {walletInfo.address !== "" && (
-              <div
-                style={{
-                  position: "relative",
-                  width: "130px",
-                }}
-                className="text-white font-semibold p-4 bg-indigo-700 flex items-center mt-2"
-              >
-                <div className="whitespace-nowrap overflow-ellipsis overflow-hidden">
-                  {walletInfo.address}
-                </div>
-                <div className="text-white">{walletInfo.address.slice(-3)}</div>
+            <div className="flex flex-col items-center">
+              <div className="flex items-center">
+                {walletInfo.address !== "" && (
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "130px",
+                    }}
+                    className="text-white font-semibold p-4 bg-indigo-700 flex items-center mt-2"
+                  >
+                    <div className="whitespace-nowrap overflow-ellipsis overflow-hidden">
+                      {walletInfo.address}
+                    </div>
+                    <div className="text-white">
+                      {walletInfo.address.slice(-3)}
+                    </div>
+                  </div>
+                )}
+                {walletInfo.balance !== "" && (
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "130px",
+                    }}
+                  >
+                    <div className="text-white font-semibold p-4 bg-green-400 mt-2 mr-2 text-center">
+                      {walletInfo.balance} ETH
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {walletInfo.balance !== "" && (
-              <div
-                style={{
-                  position: "relative",
-                  width: "130px",
-                }}
-              >
-                <div className="text-white font-semibold p-4 bg-green-400 mt-2 mr-2 text-center">
-                  {walletInfo.balance} ETH
-                </div>
-              </div>
-            )}
+              {isOnCorrectNetwork && (
+                <p className="sub-text-sm mb-2">
+                  You are on the Rinkeby Network
+                </p>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-col items-center">
-            <p className=" my-2 md:text-4xl text-lg font-bold gradient-text">
-              On-Chain Random Words
-            </p>
-            <p className="sub-text mb-2">🎁 Get your EPIC NFT today! 🎁</p>
-            {isOnCorrectNetwork && (
-              <p className="sub-text-sm mb-2">You are on the Rinkeby Network</p>
-            )}
-            <div className="flex flex-col items-center">
-              {currentAccount === ""
-                ? renderNotConnectedContainer()
-                : renderMintUI()}
+          <div className="md:flex items-center w-full h-full">
+            <div className="flex flex-col items-center md:w-1/2">
+              <p className="my-2 lg:text-4xl text-3xl font-bold gradient-text">
+                On-Chain Random Words
+              </p>
+              <p className="text-white md:text-2xl lg:text-3xl text-lg mb-2">
+                🎁 Get your EPIC NFT today! 🎁
+              </p>
             </div>
-            <div className="text-white my-2">
-              Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
+
+            <div className="flex flex-col items-center md:w-1/2">
+              <div className="flex flex-col items-center mt-4">
+                {currentAccount === ""
+                  ? renderNotConnectedContainer()
+                  : renderMintUI()}
+              </div>
+              <div className="text-white my-2">
+                Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div className="h-2/3 flex flex-col justify-between pt-8">
+      <div className="md:h-1/2 h-2/3 flex flex-col justify-between pt-16 md:pt-0">
         <div className="w-full flex flex-col items-center">
-          <div className="text-white font-semibold my-3 text-3xl underline">
+          <div className="text-white font-semibold my-3 md:text-3xl text-lg underline">
             My Collections
           </div>
-          <div className="w-full grid grid-flow-row grid-cols-4 gap-4 my-4 px-4">
+          <div className="w-full grid grid-flow-row lg:grid-cols-5 md:grid-cols-3 grid-cols-2 gap-4 my-4 px-4">
             {myCollections.map((item, i) => (
               <div
                 contentEditable="true"
@@ -370,23 +385,33 @@ const App = () => {
             ))}
           </div>
         </div>
-        <div className="footer-container">
-          <img alt="Twitter Logo" className="twitter-logo" src={twitterLogo} />
-          <a
-            className="footer-text"
-            href={BUILDSPACE_TWIITER}
-            target="_blank"
-            rel="noreferrer"
-          >
-            A @_buildspace Project
-          </a>
-          <div style={{ marginLeft: "8px", marginRight: "8px" }}>🦄</div>
-          <a
-            className="footer-text"
-            href={TWITTER_LINK}
-            target="_blank"
-            rel="noreferrer"
-          >{`built with ❤ by @${TWITTER_HANDLE}`}</a>
+        <div className="flex flex-col items-center pb-8 w-full">
+          <div className="flex flex-col md:flex-row items-center">
+            <div className="flex items-center">
+              <img
+                alt="Twitter Logo"
+                className="twitter-logo"
+                src={twitterLogo}
+              />
+              <a
+                className="footer-text"
+                href={BUILDSPACE_TWIITER}
+                target="_blank"
+                rel="noreferrer"
+              >
+                A @_buildspace Project
+              </a>
+              <div style={{ marginLeft: "8px", marginRight: "8px" }}>🦄</div>
+            </div>
+            <div className="flex items-center">
+              <a
+                className="footer-text"
+                href={TWITTER_LINK}
+                target="_blank"
+                rel="noreferrer"
+              >{`built with ❤ by @${TWITTER_HANDLE}`}</a>
+            </div>
+          </div>
         </div>
       </div>
       <ToastContainer
