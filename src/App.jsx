@@ -13,7 +13,7 @@ const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const BUILDSPACE_TWIITER = "https://twitter.com/_buildspace";
 const OPENSEA_LINK = "https://testnets.opensea.io/assets";
 const TOTAL_MINT_COUNT = 50;
-const CONTRACT_ADDRESS = "0xB646598B2DCbddB32Ad6726528201D6EB0b4B1c2";
+const CONTRACT_ADDRESS = "0x12a1480c96db91E98b759C788d69a48e77BEC348";
 
 const useContract = () => {
   const { ethereum } = window;
@@ -63,8 +63,8 @@ const App = () => {
 
       setCurrentAccount(account);
 
-      getTotalNFTsMintedSoFar();
       getWalletInfo(ethereum);
+      getTotalNFTsMintedSoFar();
 
       // fetchMyCollections();
 
@@ -136,9 +136,8 @@ const App = () => {
     }
   };
 
+  const contract = useContract();
   const getTotalNFTsMintedSoFar = async () => {
-    const contract = useContract();
-
     if (contract) {
       try {
         const numMinted = await contract.getNumberOfNFTMinted();
@@ -170,18 +169,13 @@ const App = () => {
         console.log("Mining...please wait..");
         await nftTxn.wait();
 
+        setupEventListener();
+        getTotalNFTsMintedSoFar();
+
         setIsMinting(false);
         console.log(
           `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
         );
-
-        getTotalNFTsMintedSoFar();
-
-        contract.on("NewEpicNFTMinted", (_, tokenId, collections) => {
-          console.log(collections);
-          displayMintResultToast(tokenId);
-          setMyCollections(collections);
-        });
       } catch (error) {
         setIsMinting(false);
         console.log(error);
@@ -191,29 +185,29 @@ const App = () => {
     }
   };
 
-  // // Setup our listener.
-  // const setupEventListener = async () => {
-  //   const contract = useContract();
+  // Setup our listener.
+  const setupEventListener = async () => {
+    const contract = useContract();
 
-  //   if (contract) {
-  //     // THIS IS THE MAGIC SAUCE.
-  //     // This will essentially "capture" our event when our contract throws it.
-  //     // If you're familiar with webhooks, it's very similar to that!
-  //     contract.on("NewEpicNFTMinted", (_, tokenId, collections) => {
-  //       displayMintResultToast(tokenId);
-  //       setMyCollections(collections);
-  //     });
+    if (contract) {
+      // THIS IS THE MAGIC SAUCE.
+      // This will essentially "capture" our event when our contract throws it.
+      // If you're familiar with webhooks, it's very similar to that!
+      contract.on("NewEpicNFTMinted", (_, tokenId, collections) => {
+        displayMintResultToast(tokenId);
+        setMyCollections(collections);
+      });
 
-  //     console.log("Setup event listener!");
-  //   } else {
-  //     console.log("Ethereum object doesn't exist!");
-  //   }
-  // };
+      console.log("Setup event listener!");
+    } else {
+      console.log("Ethereum object doesn't exist!");
+    }
+  };
 
   React.useEffect(() => {
     const { ethereum } = window;
     checkIfWalletIsConnected();
-    if (ethereum && !isOnCorrectNetwork) {
+    if (ethereum && ethereum.networkVersion !== "4") {
       displayNetworkErrorToast();
     } else {
       fetchMyCollections();
@@ -242,12 +236,20 @@ const App = () => {
    * We want the "Connect to Wallet" button to dissapear if they've already connected their wallet!
    */
   const renderMintUI = () => (
-    <button
-      onClick={askContractToMintNft}
-      className="cta-button connect-wallet-button"
-    >
-      {isMinting ? "Minting..." : "Mint NFT"}
-    </button>
+    <div className="flex items-center justify-around">
+      {isMinting && (
+        <img style={{ width: "5%" }} src={Blocks} alt="loading blocks" />
+      )}
+      <button
+        onClick={askContractToMintNft}
+        className="cta-button connect-wallet-button"
+      >
+        {isMinting ? "Minting..." : "Mint NFT"}
+      </button>
+      {isMinting && (
+        <img style={{ width: "5%" }} src={Blocks} alt="loading blocks" />
+      )}
+    </div>
   );
 
   return (
@@ -284,7 +286,9 @@ const App = () => {
           </div>
 
           <div className="flex flex-col items-center">
-            <p className=" my-2 header gradient-text">On-Chain Random Words</p>
+            <p className=" my-2 md:text-4xl text-lg font-bold gradient-text">
+              On-Chain Random Words
+            </p>
             <p className="sub-text mb-2">🎁 Get your EPIC NFT today! 🎁</p>
             {isOnCorrectNetwork && (
               <p className="sub-text-sm mb-2">You are on the Rinkeby Network</p>
@@ -293,13 +297,6 @@ const App = () => {
               {currentAccount === ""
                 ? renderNotConnectedContainer()
                 : renderMintUI()}
-              {isMinting && (
-                <img
-                  style={{ width: "20%" }}
-                  src={Blocks}
-                  alt="loading blocks"
-                />
-              )}
             </div>
             <div className="text-white my-2">
               Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
