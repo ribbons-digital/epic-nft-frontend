@@ -10,7 +10,7 @@ import "react-toastify/dist/ReactToastify.css";
 // Constants
 const TWITTER_HANDLE = "just_shiang";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
-const BUILDSPACE_TWIITER = "https://twitter.com/@_buildspace";
+const BUILDSPACE_TWIITER = "https://twitter.com/_buildspace";
 const OPENSEA_LINK = "https://testnets.opensea.io/assets";
 const TOTAL_MINT_COUNT = 50;
 const CONTRACT_ADDRESS = "0xB646598B2DCbddB32Ad6726528201D6EB0b4B1c2";
@@ -47,7 +47,7 @@ const App = () => {
     const { ethereum } = window;
 
     if (!ethereum) {
-      console.log("Make sure you have a metamask");
+      console.log("Make sure you have a metamask wallet");
       return;
     } else {
       console.log("We have the ethereum object", ethereum);
@@ -85,11 +85,6 @@ const App = () => {
         return;
       }
 
-      if (!ethereum.isMetaMask) {
-        alert("Please use MetaMask Wallet");
-        return;
-      }
-
       /*
        * Fancy method to request access to account.
        */
@@ -103,6 +98,7 @@ const App = () => {
       console.log("Connected", accounts[0]);
 
       setCurrentAccount(accounts[0]);
+      fetchMyCollections();
       getWalletInfo(ethereum);
 
       // Setup listener! This is for the case where a user comes to our site
@@ -181,7 +177,11 @@ const App = () => {
 
         getTotalNFTsMintedSoFar();
 
-        setupEventListener();
+        contract.on("NewEpicNFTMinted", (_, tokenId, collections) => {
+          console.log(collections);
+          displayMintResultToast(tokenId);
+          setMyCollections(collections);
+        });
       } catch (error) {
         setIsMinting(false);
         console.log(error);
@@ -191,28 +191,29 @@ const App = () => {
     }
   };
 
-  // Setup our listener.
-  const setupEventListener = async () => {
-    const contract = useContract();
+  // // Setup our listener.
+  // const setupEventListener = async () => {
+  //   const contract = useContract();
 
-    if (contract) {
-      // THIS IS THE MAGIC SAUCE.
-      // This will essentially "capture" our event when our contract throws it.
-      // If you're familiar with webhooks, it's very similar to that!
-      contract.on("NewEpicNFTMinted", (_, tokenId, collections) => {
-        displayMintResultToast(tokenId);
-        setMyCollections(collections);
-      });
+  //   if (contract) {
+  //     // THIS IS THE MAGIC SAUCE.
+  //     // This will essentially "capture" our event when our contract throws it.
+  //     // If you're familiar with webhooks, it's very similar to that!
+  //     contract.on("NewEpicNFTMinted", (_, tokenId, collections) => {
+  //       displayMintResultToast(tokenId);
+  //       setMyCollections(collections);
+  //     });
 
-      console.log("Setup event listener!");
-    } else {
-      console.log("Ethereum object doesn't exist!");
-    }
-  };
+  //     console.log("Setup event listener!");
+  //   } else {
+  //     console.log("Ethereum object doesn't exist!");
+  //   }
+  // };
 
   React.useEffect(() => {
+    const { ethereum } = window;
     checkIfWalletIsConnected();
-    if (!isOnCorrectNetwork) {
+    if (ethereum && !isOnCorrectNetwork) {
       displayNetworkErrorToast();
     } else {
       fetchMyCollections();
@@ -250,55 +251,63 @@ const App = () => {
   );
 
   return (
-    <div className="bg-gray-900 h-full">
-      <div className="w-full max-h-14 flex items-center justify-end">
-        {walletInfo.address !== "" && (
-          <div
-            style={{
-              position: "relative",
-              width: "130px",
-            }}
-            className="text-white font-semibold p-4 bg-indigo-700 flex items-center mt-2"
-          >
-            <div className="whitespace-nowrap overflow-ellipsis overflow-hidden">
-              {walletInfo.address}
-            </div>
-            <div className="text-white">{walletInfo.address.slice(-3)}</div>
-          </div>
-        )}
-        {walletInfo.balance !== "" && (
-          <div
-            style={{
-              position: "relative",
-              width: "130px",
-            }}
-          >
-            <div className="text-white font-semibold p-4 bg-green-400 mt-2 mr-2 text-center">
-              {walletInfo.balance} ETH
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col items-center justify-around h-full">
-        <div className="flex flex-col items-center header-container">
-          <p className=" my-2 header gradient-text">On-Chain Random Words</p>
-          <p className="sub-text mb-2">🎁 Get your EPIC NFT today! 🎁</p>
-          {isOnCorrectNetwork && (
-            <p className="sub-text-sm mb-2">You are on the Rinkeby Network</p>
-          )}
-          <div className="flex flex-col items-center">
-            {currentAccount === ""
-              ? renderNotConnectedContainer()
-              : renderMintUI()}
-            {isMinting && (
-              <img style={{ width: "20%" }} src={Blocks} alt="loading blocks" />
+    <div className="h-screen">
+      <div className="h-1/3">
+        <div className="bg-gray-900 flex flex-col items-center h-full">
+          <div className="w-full flex items-center justify-end">
+            {walletInfo.address !== "" && (
+              <div
+                style={{
+                  position: "relative",
+                  width: "130px",
+                }}
+                className="text-white font-semibold p-4 bg-indigo-700 flex items-center mt-2"
+              >
+                <div className="whitespace-nowrap overflow-ellipsis overflow-hidden">
+                  {walletInfo.address}
+                </div>
+                <div className="text-white">{walletInfo.address.slice(-3)}</div>
+              </div>
+            )}
+            {walletInfo.balance !== "" && (
+              <div
+                style={{
+                  position: "relative",
+                  width: "130px",
+                }}
+              >
+                <div className="text-white font-semibold p-4 bg-green-400 mt-2 mr-2 text-center">
+                  {walletInfo.balance} ETH
+                </div>
+              </div>
             )}
           </div>
-          <div className="text-white my-2">
-            Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
+
+          <div className="flex flex-col items-center">
+            <p className=" my-2 header gradient-text">On-Chain Random Words</p>
+            <p className="sub-text mb-2">🎁 Get your EPIC NFT today! 🎁</p>
+            {isOnCorrectNetwork && (
+              <p className="sub-text-sm mb-2">You are on the Rinkeby Network</p>
+            )}
+            <div className="flex flex-col items-center">
+              {currentAccount === ""
+                ? renderNotConnectedContainer()
+                : renderMintUI()}
+              {isMinting && (
+                <img
+                  style={{ width: "20%" }}
+                  src={Blocks}
+                  alt="loading blocks"
+                />
+              )}
+            </div>
+            <div className="text-white my-2">
+              Number of NFT minted so far: {numberMinted} / {TOTAL_MINT_COUNT}
+            </div>
           </div>
         </div>
-
+      </div>
+      <div className="h-2/3 flex flex-col justify-between pt-8">
         <div className="w-full flex flex-col items-center">
           <div className="text-white font-semibold my-3 text-3xl underline">
             My Collections
