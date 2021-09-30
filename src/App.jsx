@@ -6,7 +6,7 @@ import myEpicNft from "./utils/MyEpicNFT.json";
 import { ToastContainer, toast } from "react-toastify";
 import Blocks from "./assets/Blocks.svg";
 import "react-toastify/dist/ReactToastify.css";
-import Web3 from "web3";
+
 // Constants
 const TWITTER_HANDLE = "just_shiang";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
@@ -114,8 +114,9 @@ const App = () => {
   };
 
   const getWalletInfo = async (ethereum) => {
-    const web3 = new Web3(Web3.givenProvider);
-    const balance = await web3.eth.getBalance(ethereum.selectedAddress);
+    const provider = new ethers.providers.Web3Provider(ethereum);
+
+    const balance = await provider.getBalance(ethereum.selectedAddress);
 
     setWalletInfo({
       address: ethereum.selectedAddress,
