@@ -66,10 +66,7 @@ const App = () => {
       const account = accounts[0];
       console.log("Found an authorized account:", account);
 
-      setCurrentAccount(account);
-      fetchMyCollections();
-      getWalletInfo(ethereum);
-      getTotalNFTsMintedSoFar();
+      refreshAccountState(account, ethereum);
 
       // fetchMyCollections();
 
@@ -107,11 +104,7 @@ const App = () => {
        */
       console.log("Connected", accounts[0]);
 
-      setCurrentAccount(accounts[0]);
-      fetchMyCollections();
-      getWalletInfo(ethereum);
-
-      getTotalNFTsMintedSoFar();
+      refreshAccountState(accounts[0], ethereum);
       // Setup listener! This is for the case where a user comes to our site
       // and connected their wallet for the first time.
       // setupEventListener();
@@ -119,6 +112,14 @@ const App = () => {
       console.log(error);
     }
   };
+
+  function refreshAccountState(account, ethereum) {
+    setCurrentAccount(account);
+    fetchMyCollections();
+    getWalletInfo(ethereum);
+
+    getTotalNFTsMintedSoFar();
+  }
 
   const getWalletInfo = async (ethereum) => {
     const provider = new ethers.providers.Web3Provider(ethereum);
@@ -147,8 +148,8 @@ const App = () => {
     }
   };
 
-  const contract = useContract();
   const getTotalNFTsMintedSoFar = async () => {
+    const contract = useContract();
     if (contract) {
       try {
         const numMinted = await contract.getNumberOfNFTMinted();
@@ -216,7 +217,6 @@ const App = () => {
   };
 
   React.useEffect(() => {
-    const { ethereum } = window;
     checkIfWalletIsConnected();
   }, []);
 
@@ -234,6 +234,36 @@ const App = () => {
       ethereum.removeListener("chainChanged", handleChainChanged);
     };
   }, []);
+
+  function handleAccountsChanges(accounts) {
+    const { ethereum } = window;
+
+    if (!ethereum) {
+      alert("Please connect your MetaMask Wallet.");
+      return;
+    }
+
+    if (ethereum.networkVersion !== "4") {
+      displayNetworkErrorToast();
+      return;
+    }
+    // Handle the new accounts, or lack thereof.
+    // "accounts" will always be an array, but it can be empty.
+    if (accounts.length > 0) {
+      refreshAccountState(accounts[0], ethereum);
+    }
+  }
+
+  React.useEffect(() => {
+    const { ethereum } = window;
+    if (ethereum) {
+      ethereum.on("accountsChanged", handleAccountsChanges);
+    }
+
+    return () => {
+      ethereum.removeListener("accountsChanged", handleAccountsChanges);
+    };
+  });
 
   // Render Methods
   const renderNotConnectedContainer = () => (
