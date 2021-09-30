@@ -53,6 +53,11 @@ const App = () => {
       console.log("We have the ethereum object", ethereum);
     }
 
+    if (ethereum.networkVersion !== "4") {
+      displayNetworkErrorToast();
+      return;
+    }
+
     //Check if we're authorized to access the user's wallet
     const accounts = await ethereum.request({ method: "eth_accounts" });
 
@@ -62,7 +67,7 @@ const App = () => {
       console.log("Found an authorized account:", account);
 
       setCurrentAccount(account);
-
+      fetchMyCollections();
       getWalletInfo(ethereum);
       getTotalNFTsMintedSoFar();
 
@@ -85,6 +90,11 @@ const App = () => {
         return;
       }
 
+      if (ethereum.networkVersion !== "4") {
+        displayNetworkErrorToast();
+        return;
+      }
+
       /*
        * Fancy method to request access to account.
        */
@@ -101,6 +111,7 @@ const App = () => {
       fetchMyCollections();
       getWalletInfo(ethereum);
 
+      getTotalNFTsMintedSoFar();
       // Setup listener! This is for the case where a user comes to our site
       // and connected their wallet for the first time.
       // setupEventListener();
@@ -207,11 +218,21 @@ const App = () => {
   React.useEffect(() => {
     const { ethereum } = window;
     checkIfWalletIsConnected();
-    if (ethereum && ethereum.networkVersion !== "4") {
-      displayNetworkErrorToast();
-    } else {
-      fetchMyCollections();
+  }, []);
+
+  function handleChainChanged(_chainId) {
+    // We recommend reloading the page, unless you must do otherwise
+    window.location.reload();
+  }
+  React.useEffect(() => {
+    const { ethereum } = window;
+    if (ethereum) {
+      ethereum.on("chainChanged", handleChainChanged);
     }
+
+    return () => {
+      ethereum.removeListener("chainChanged", handleChainChanged);
+    };
   }, []);
 
   // Render Methods
